@@ -59,8 +59,8 @@ def force_subscribe(func):
             is_sub = await is_subscribed(bot, message.from_user.id)
             if not is_sub:
                 keyboard = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🔔 Join Channel", url="https://")],
-                    [InlineKeyboardButton("🔄 Refresh", callback_data="refresh_sub")]
+                    [InlineKeyboardButton("🔔 Join Channel", url="https://t.me/sudhakuy")],
+                    [InlineKeyboardButton("🔄 Refresh", callback_data="https://t.me/sudhakuy")]
                 ])
                 await message.reply_text(
                     f"<b>🔒 Access Denied!</b>\n\n"
