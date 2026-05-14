@@ -36,7 +36,7 @@ bot = Client(
 WELCOME_IMAGE_PATH = "welcome.jpg"
 
 # Force Subscribe Check Function
-async def is_subscribed(bot, 890749443):
+async def is_subscribed(bot, userid):
     if not -1003646612944:
         return True
     
