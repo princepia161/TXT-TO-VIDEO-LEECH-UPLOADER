@@ -145,7 +145,7 @@ async def start(bot: Client, m: Message):
 async def callback_handler(bot: Client, query: CallbackQuery):
     data = query.data
     
-    if data == "refresh_sub":
+    if data == "-1003646612944":
         if FORCE_SUB_CHANNEL:
             is_sub = await is_subscribed(bot, query.from_user.id)
             if is_sub:
