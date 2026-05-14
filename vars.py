@@ -8,16 +8,16 @@ BOT_TOKEN = environ.get("BOT_TOKEN", "8564398983:AAGxMpPkmLcgZsPnVzIQzCUIro5KNk7
 
 # Force Subscribe Configuration
 FORCE_SUB_CHANNEL = environ.get("FORCE_SUB_CHANNEL", "bot_subscription")  # Channel username without @, 
-FORCE_SUB_CHANNEL_LINK = environ.get("FORCE_SUB_CHANNEL_LINK", "https://t.me/princepia")  # Channel link
+FORCE_SUB_CHANNEL_LINK = environ.get("FORCE_SUB_CHANNEL_LINK", "https://t.me/+jZIAVLX-rWQ1OGU9")  # Channel link
 
 # Admin Configuration
-ADMINS = list(map(int, environ.get("ADMINS", "").split()))
+ADMINS = list(map(int, environ.get("ADMINS", "890749443").split()))
 
 # Optional: Bot Owner ID
-OWNER_ID = int(environ.get("OWNER_ID", "8100054392"))
+OWNER_ID = int(environ.get("OWNER_ID", "890749443"))
 
 # Database URL (if you want to add database support later)
-DATABASE_URL = environ.get("DATABASE_URL", "")
+DATABASE_URL = environ.get("DATABASE_URL", "-1003646612944")
 
 
 
