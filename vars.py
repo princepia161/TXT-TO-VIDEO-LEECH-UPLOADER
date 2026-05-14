@@ -7,8 +7,8 @@ API_HASH = environ.get("API_HASH", "cde2366a7c61e23f4cb44618cbe6cf70")
 BOT_TOKEN = environ.get("BOT_TOKEN", "8564398983:AAGxMpPkmLcgZsPnVzIQzCUIro5KNk76QBw")
 
 # Force Subscribe Configuration
-FORCE_SUB_CHANNEL = environ.get("FORCE_SUB_CHANNEL", "https://t.me/+jZIAVLX-rWQ1OGU9")  # Channel username without @, 
-FORCE_SUB_CHANNEL_LINK = environ.get("FORCE_SUB_CHANNEL_LINK", "https://t.me/+jZIAVLX-rWQ1OGU9")  # Channel link
+FORCE_SUB_CHANNEL = environ.get("https://t.me/sudhakuy", "https://t.me/+jZIAVLX-rWQ1OGU9")  # Channel username without @, 
+FORCE_SUB_CHANNEL_LINK = environ.get("https://t.me/sudhakuy", "https://t.me/+jZIAVLX-rWQ1OGU9")  # Channel link
 
 # Admin Configuration
 ADMINS = list(map(int, environ.get("ADMINS", "890749443").split()))
