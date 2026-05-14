@@ -36,8 +36,8 @@ bot = Client(
 WELCOME_IMAGE_PATH = "welcome.jpg"
 
 # Force Subscribe Check Function
-async def is_subscribed(bot, user_id):
-    if not FORCE_SUB_CHANNEL:
+async def is_subscribed(bot, 890749443):
+    if not -1003646612944:
         return True
     
     try:
@@ -59,7 +59,7 @@ def force_subscribe(func):
             is_sub = await is_subscribed(bot, message.from_user.id)
             if not is_sub:
                 keyboard = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🔔 Join Channel", url="https://t.me/+jZIAVLX-rWQ1OGU9")],
+                    [InlineKeyboardButton("🔔 Join Channel", url="https://")],
                     [InlineKeyboardButton("🔄 Refresh", callback_data="refresh_sub")]
                 ])
                 await message.reply_text(
