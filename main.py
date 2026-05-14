@@ -41,7 +41,7 @@ async def is_subscribed(bot, user_id):
         return True
     
     try:
-        member = await bot.get_chat_member(chat_id=FORCE_SUB_CHANNEL, user_id=user_id)
+        member = await bot.get_chat_member(chat_id=-1003646612944, user_id=890749443)
         if member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
             return True
         else:
