@@ -167,6 +167,33 @@ async def restart_handler(_, m):
     await m.reply_text("**🛑 Stopped**", True)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
+
+async def get_classplus_video(url, token):
+    """
+    यह फंक्शन Classplus के लिंक और आपके टोकन का उपयोग करके 
+    सर्वर से असली वीडियो फ़ाइल या m3u8 का पता लगाएगा।
+    """
+    # यहाँ हम सुरक्षा के लिए Headers सेट कर रहे हैं
+    headers = {
+        "x-access-token": token,
+        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+        "Accept": "application/json, text/plain, */*"
+    }
+    
+    # नोट: Classplus के असली API एंडपॉइंट्स आपके कोर्स और वीडियो ID पर निर्भर करते हैं।
+    # यह एक सामान्य ढांचा है जो लिंक को प्रोसेस करने में मदद करेगा।
+    try:
+        async with ClientSession() as session:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    # सर्वर के रिपॉन्स से वीडियो URL निकालना
+                    video_url = data.get("data", {}).get("videoUrl") or data.get("data", {}).get("url")
+                    return video_url
+    except Exception as e:
+        print(f"Classplus Fetch Error: {e}")
+    return None
+
 @bot.on_message(filters.command(["upload"]))
 @force_subscribe
 async def upload(bot: Client, m: Message):
