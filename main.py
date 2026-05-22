@@ -299,7 +299,6 @@ async def upload(bot: Client, m: Message):
                 elif url.endswith('.pdf'):
                     cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
                 elif "classplusapp.com" in url or ".m3u8" in url:
-                    # ADVANCED BYPASS FOR CLASSPLUS M3U8 STREAM LINKS
                     cmd = (
                         f'yt-dlp '
                         f'--downloader ffmpeg '
@@ -349,7 +348,7 @@ async def upload(bot: Client, m: Message):
                             os.remove(expected_file)
                             successful_downloads += 1
                     else:
-                        # Video/M3U8 download execution
+                        # कैप्चर मोड चालू किया गया है ताकि एरर पता चल सके
                         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
                         
                         possible_extensions = ['.mp4', '.mkv', '.avi', '.webm', '.mov', '.ts']
@@ -365,8 +364,10 @@ async def upload(bot: Client, m: Message):
                             successful_downloads += 1
                         else:
                             failed_downloads += 1
-                            await prog.edit(f"❌ **Failed:** {name1}\n\n*⚠️ नोट: अगर सर्वर पर वीडियो एन्क्रिप्टेड (DRM Protected) है, तो इसके लिए स्पेसिफिक डिक्रिप्शन कीज़ की आवश्यकता होगी।*")
-                            await asyncio.sleep(3)
+                            # यहाँ बॉट अब सीधे टेलीग्राम चैट पर असली एरर भेजेगा
+                            error_details = result.stderr if result.stderr else "No output file generated."
+                            await m.reply_text(f"❌ **yt-dlp Error Log for {name1}:**\n`{error_details[:350]}`")
+                            await asyncio.sleep(2)
                     
                     await prog.delete()
                     count += 1
@@ -378,13 +379,13 @@ async def upload(bot: Client, m: Message):
                     continue
                 except Exception as download_error:
                     failed_downloads += 1
-                    await prog.edit(f"❌ **Error:** {str(download_error)[:100]}")
+                    await m.reply_text(f"❌ **Download Try Error:** `{str(download_error)}`")
                     await asyncio.sleep(3)
                     continue
 
             except Exception as e:
                 failed_downloads += 1
-                await m.reply_text(f"❌ **Processing error:** {str(e)[:200]}")
+                await m.reply_text(f"❌ **Loop Processing error:** `{str(e)}`")
                 continue
 
     except Exception as e:
@@ -400,3 +401,4 @@ async def upload(bot: Client, m: Message):
 
 if __name__ == "__main__":
     bot.run()
+
