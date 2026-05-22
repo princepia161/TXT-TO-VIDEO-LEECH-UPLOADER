@@ -35,6 +35,9 @@ bot = Client(
 # Welcome image file path
 WELCOME_IMAGE_PATH = "welcome.jpg"
 
+# HARDCODED CLASSPLUS JWT TOKEN
+CLASSPLUS_TOKEN = "eyJhbGciOiJIUzM4NCIsInR5cCI6lkpXVCJ9.eyJpZCI6MTY0MDQwNzkyLCJvcmdJZCI6ODEyNDEwLCJ0eXBIljoxLCJtb2JpbGUiOil5MTgyMTAxNjk5NTEiLCJuYW1lljoiUHJpbmNIcGIhliwiZW1haWwiOiJwcmluY2VwaWExNjFAZ21haWwuY29tliwiaXNJbnRIcm5hdGIvbmFsljowLCJkZWZhdWx0TGFuZ3VhZ2UiOiJFTilslmNvdW50cnIDb2RIljoiSU4iLCJjb3VudHJ5SVNPljoiOTEiLCJ0aW1lem9uZSI6lkdNVCs1OjMwliwiaXNEaXkiOnRydWUsIm9yZ0NvZGUiOiJra3Vja3kiLCJpc0RpeVN1YmFkbWluljowLCJmaW5nZXJwcmludEIkljoiYzdkYTk3M2E3Y2IzM2MyZmQ3ZjQyZDImOGFiZTcyNzYiLCJpYXQiOjE3Nzk0NDEwMTksImV4cCI6MTc4MDA0NTgxOX0.r8KGfsInmSuR2LgPzaY7iCPooumjZ9y33WS6g1vRXZNtXN5rtY5-5EfobVHY78nW"
+
 # Force Subscribe Check Function
 async def is_subscribed(bot, userid):
     if not -1003646612944:
@@ -170,26 +173,39 @@ async def restart_handler(_, m):
 
 async def get_classplus_video(url, token):
     """
-    यह फंक्शन Classplus के लिंक और आपके टोकन का उपयोग करके 
-    सर्वर से असली वीडियो फ़ाइल या m3u8 का पता लगाएगा।
+    यह फंक्शन Classplus/kkucky लिंक्स और JWT टोकन का उपयोग करके
+    उनके API गेटवे से डायरेक्ट प्ले करने योग्य वीडियो लिंक या m3u8 स्ट्रीम निकालेगा।
     """
-    # यहाँ हम सुरक्षा के लिए Headers सेट कर रहे हैं
     headers = {
         "x-access-token": token,
         "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-        "Accept": "application/json, text/plain, */*"
+        "Accept": "application/json, text/plain, */*",
+        "Origin": "https://web.classplusapp.com",
+        "Referer": "https://web.classplusapp.com/"
     }
     
-    # नोट: Classplus के असली API एंडपॉइंट्स आपके कोर्स और वीडियो ID पर निर्भर करते हैं।
-    # यह एक सामान्य ढांचा है जो लिंक को प्रोसेस करने में मदद करेगा।
+    # URL से वीडियो ID निकालने का प्रयास
+    video_id_match = re.search(r'(?:video|media|content)[_/-](\d+)', url, re.IGNORECASE) or re.search(r'id=(\d+)', url)
+    if not video_id_match:
+        # अगर डायरेक्ट API एंडपॉइंट है, तो सीधे उसे हिट करें
+        api_url = url
+    else:
+        v_id = video_id_match.group(1)
+        api_url = f"https://api.classplusapp.com/v2/media/video/url?videoId={v_id}"
+
     try:
         async with ClientSession() as session:
-            async with session.get(url, headers=headers) as resp:
+            async with session.get(api_url, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    # सर्वर के रिपॉन्स से वीडियो URL निकालना
-                    video_url = data.get("data", {}).get("videoUrl") or data.get("data", {}).get("url")
-                    return video_url
+                    # Classplus रिस्पॉन्स से अलग-अलग संभावित कीज़ चेक करना
+                    video_url = (
+                        data.get("data", {}).get("videoUrl") or 
+                        data.get("data", {}).get("url") or 
+                        data.get("data", {}).get("streamUrl")
+                    )
+                    if video_url:
+                        return video_url
     except Exception as e:
         print(f"Classplus Fetch Error: {e}")
     return None
@@ -292,6 +308,14 @@ async def upload(bot: Client, m: Message):
                     url = url.replace("file/d/","uc?export=download&id=").replace("/view?usp=sharing","")
                 elif "youtube.com/watch" in url or "youtu.be/" in url:
                     pass  # Keep as is for yt-dlp
+                elif "classplus" in url or "kkucky" in url:
+                    # Classplus/Subdomain डिटेक्शन लॉजिक
+                    try:
+                        extracted_url = await get_classplus_video(url, CLASSPLUS_TOKEN)
+                        if extracted_url:
+                            url = extracted_url
+                    except Exception as cp_err:
+                        print(f"Classplus parsing failed: {cp_err}")
                 elif "visionias" in url:
                     try:
                         async with ClientSession() as session:
@@ -313,39 +337,33 @@ async def upload(bot: Client, m: Message):
                 if "youtu" in url:
                     ytf = 'bv*[height<={raw_text2}][ext=mp4]+ba[ext=m4a]/b[height<={raw_text2}][ext=mp4]'
                     
-                    
                     cmd = (
-                            
-                     f'yt-dlp '
-    f'--force-ipv4 '
-    f'--retries infinite '
-    f'--http-chunk-size 10M '
-    f'--downloader ffmpeg '
-    f'--concurrent-fragments 20 '
-    f'--cookies-from-browser chrome '
-    f'--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
-    f'-f "{ytf}" "{url}" '
-    f'-o "{name}.%(ext)s"'
-
-    
-                        )
-
+                        f'yt-dlp '
+                        f'--force-ipv4 '
+                        f'--retries infinite '
+                        f'--http-chunk-size 10M '
+                        f'--downloader ffmpeg '
+                        f'--concurrent-fragments 20 '
+                        f'--cookies-from-browser chrome '
+                        f'--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
+                        f'-f "{ytf}" "{url}" '
+                        f'-o "{name}.%(ext)s"'
+                    )
 
                 elif url.endswith('.pdf'):
                     cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
                 else:
-                    
+                    # डिफ़ॉल्ट डाउनलोडर (Classplus m3u8 लिंक भी इसी के ज़रिए डाउनलोड होंगे)
                     cmd = (
-                            f'yt-dlp '
-                            f'--downloader ffmpeg '
-                            f'--concurrent-fragments 32 '
-                            f'--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
-                            f'--add-header "Accept-Language: en-US,en;q=0.9" '
-                            f'--add-header "Connection: keep-alive" '
-                            f'-f "bestvideo[height<={raw_text2}]+bestaudio/best[height<={raw_text2}]" "{url}" '
-                            f'-o "{name}.%(ext)s"'
-                        )
-
+                        f'yt-dlp '
+                        f'--downloader ffmpeg '
+                        f'--concurrent-fragments 32 '
+                        f'--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
+                        f'--add-header "Accept-Language: en-US,en;q=0.9" '
+                        f'--add-header "Connection: keep-alive" '
+                        f'-f "bestvideo[height<={raw_text2}]+bestaudio/best[height<={raw_text2}]" "{url}" '
+                        f'-o "{name}.%(ext)s"'
+                    )
 
                 cc = f'**📹 Video #{str(count).zfill(3)}**\n**📁 Title:** {name1}\n**📦 Batch:** {raw_text0}\n{MR}'
                 cc1 = f'**📄 Document #{str(count).zfill(3)}**\n**📁 Title:** {name1}\n**📦 Batch:** {raw_text0}\n{MR}'
@@ -426,3 +444,4 @@ async def upload(bot: Client, m: Message):
 
 if __name__ == "__main__":
     bot.run()
+
