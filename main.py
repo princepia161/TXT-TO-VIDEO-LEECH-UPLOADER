@@ -97,7 +97,7 @@ def extract_url_from_line(line):
         url = url_match.group()
         # Extract title (everything before the URL)
         title = line.replace(url, '').strip()
-        # Clean potential markdown source markers
+        # Clean potential markdown or source markers from TXT file
         title = re.sub(r'^\\s*', '', title).rstrip(': ')
         if not title:
             title = f"File_{hash(url) % 1000}"
@@ -299,15 +299,17 @@ async def upload(bot: Client, m: Message):
                 elif url.endswith('.pdf'):
                     cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
                 elif "classplusapp.com" in url or ".m3u8" in url:
-                    # Classplus CDN डायरेक्ट लिंक्स के लिए विशेष हेडर कमांड
+                    # ADVANCED BYPASS FOR CLASSPLUS M3U8 STREAM LINKS
                     cmd = (
                         f'yt-dlp '
                         f'--downloader ffmpeg '
                         f'--concurrent-fragments 32 '
+                        f'--no-check-certificate '
+                        f'--legacy-server-connect '
                         f'--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
                         f'--add-header "Origin: https://web.classplusapp.com" '
                         f'--add-header "Referer: https://web.classplusapp.com/" '
-                        f'-f "bestvideo[height<={raw_text2}]+bestaudio/best[height<={raw_text2}]/best[height<={raw_text2}]" "{url}" '
+                        f'-f "bestvideo[height<={raw_text2}]+bestaudio/best[height<={raw_text2}]/best" "{url}" '
                         f'-o "{name}.%(ext)s"'
                     )
                 else:
@@ -347,7 +349,7 @@ async def upload(bot: Client, m: Message):
                             os.remove(expected_file)
                             successful_downloads += 1
                     else:
-                        # Video/M3U8 download
+                        # Video/M3U8 download execution
                         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
                         
                         possible_extensions = ['.mp4', '.mkv', '.avi', '.webm', '.mov', '.ts']
@@ -363,8 +365,8 @@ async def upload(bot: Client, m: Message):
                             successful_downloads += 1
                         else:
                             failed_downloads += 1
-                            await prog.edit(f"❌ **Failed:** {name1}\n\n*(Note: If it's encrypted DRM, download requires specific keys)*")
-                            await asyncio.sleep(2)
+                            await prog.edit(f"❌ **Failed:** {name1}\n\n*⚠️ नोट: अगर सर्वर पर वीडियो एन्क्रिप्टेड (DRM Protected) है, तो इसके लिए स्पेसिफिक डिक्रिप्शन कीज़ की आवश्यकता होगी।*")
+                            await asyncio.sleep(3)
                     
                     await prog.delete()
                     count += 1
